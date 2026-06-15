@@ -1,0 +1,14 @@
+# Executables
+*.exe
+*.o
+*.obj
+
+# Temporary test files
+test.*
+*.zip
+*.log
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
