@@ -1,0 +1,44 @@
+name: Build and Release Wordle Prism
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Raylib
+        run: |
+          if (-not (Test-Path "raylib/raylib-6.0_win32_mingw-w64")) {
+            curl.exe -L "https://github.com/raysan5/raylib/releases/download/6.0/raylib-6.0_win32_mingw-w64.zip" -o raylib.zip
+            Expand-Archive -Path raylib.zip -DestinationPath "raylib" -Force
+            Remove-Item raylib.zip
+          }
+
+      - name: Build with GCC
+        run: |
+          gcc -O3 -Wall -std=c99 -Isrc -Iraylib/raylib-6.0_win32_mingw-w64/include `
+              src/main.c src/ui_board.c src/ui_glass.c src/solver.c src/motion.c src/audio_synth.c src/words.c src/shim.c `
+              -Lraylib/raylib-6.0_win32_mingw-w64/lib -lraylib -lopengl32 -lgdi32 -lwinmm -lm -mwindows `
+              -o wordle_prism.exe
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wordle-prism-windows
+          path: wordle_prism.exe
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: wordle_prism.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
