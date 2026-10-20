@@ -24,8 +24,9 @@ jobs:
 
       - name: Build with GCC
         run: |
+          windres -i src/resource.rc -o src/resource.o
           gcc -O3 -Wall -std=c99 -Isrc -Iraylib/raylib-6.0_win32_mingw-w64/include `
-              src/main.c src/ui_board.c src/ui_glass.c src/solver.c src/motion.c src/audio_synth.c src/words.c src/shim.c `
+              src/main.c src/ui_board.c src/ui_glass.c src/solver.c src/motion.c src/audio_synth.c src/words.c src/shim.c src/resource.o `
               -Lraylib/raylib-6.0_win32_mingw-w64/lib -lraylib -lopengl32 -lgdi32 -lwinmm -lm -mwindows `
               -o wordle_prism.exe
 
