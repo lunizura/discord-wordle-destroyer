@@ -15,7 +15,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Raylib (win64_mingw-w64)
         shell: pwsh
@@ -32,7 +32,7 @@ jobs:
         shell: pwsh
         run: |
           gcc --version
-          gcc -O2 -Wall -Wextra -std=c99 "-Isrc" tests/test_solver.c src/solver.c src/words.c -lm -o test_solver.exe
+          gcc -O2 -Wall -Wextra -Werror -pedantic -std=c99 "-Isrc" tests/test_solver.c src/solver.c src/words.c -lm -o test_solver.exe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           .\test_solver.exe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -56,20 +56,20 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not $dllLines) { throw "No DLL imports found in wordle_prism.exe" }
           $dllLines | ForEach-Object { Write-Host $_ }
-          $unexpected = $dllLines | Where-Object { $_ -match "libgcc|winpthread|libstdc\+\+|raylib\.dll" }
+          $unexpected = $dllLines | Where-Object { $_ -match "libgcc|winpthread|libstdc\+\+|libssp|libgomp|libquadmath|raylib\.dll" }
           if ($unexpected) {
             throw "wordle_prism.exe links non-system runtime DLL(s): $($unexpected -join ', ')"
           }
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wordle-prism-windows
           path: wordle_prism.exe
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: wordle_prism.exe
           generate_release_notes: true

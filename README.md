@@ -35,7 +35,7 @@ Made this during the break after graduating high school while waiting for colleg
   * *NYT Mode:* The 2,315 curated words for normal daily Wordle.
   * *Discord Wide:* 14,855 Scrabble words, because Discord bots like to pick weird obscure words.
 * **Procedural audio:** Key clicks, tile pops, flip sounds, and victory chime are synthesized in C math at runtime. No external audio files.
-* **Single `.exe`:** Standalone ~1.8 MB binary. No install needed.
+* **Single `.exe`:** Standalone ~2 MB binary. No install needed.
 
 ---
 
