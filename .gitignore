@@ -3,6 +3,9 @@
 *.o
 *.obj
 
+# Vendored Raylib SDKs (downloaded by build.bat / CI)
+raylib/
+
 # Temporary test files
 test.*
 *.zip

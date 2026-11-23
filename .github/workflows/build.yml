@@ -7,6 +7,9 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -14,21 +17,49 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Raylib
+      - name: Setup Raylib (win64_mingw-w64)
+        shell: pwsh
         run: |
-          if (-not (Test-Path "raylib/raylib-6.0_win32_mingw-w64")) {
-            curl.exe -L "https://github.com/raysan5/raylib/releases/download/6.0/raylib-6.0_win32_mingw-w64.zip" -o raylib.zip
+          if (-not (Test-Path "raylib/raylib-6.0_win64_mingw-w64")) {
+            New-Item -ItemType Directory -Force -Path "raylib" | Out-Null
+            curl.exe -fsSL "https://github.com/raysan5/raylib/releases/download/6.0/raylib-6.0_win64_mingw-w64.zip" -o raylib.zip
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             Expand-Archive -Path raylib.zip -DestinationPath "raylib" -Force
             Remove-Item raylib.zip
           }
 
+      - name: Run Solver Unit Tests
+        shell: pwsh
+        run: |
+          gcc --version
+          gcc -O2 -Wall -Wextra -std=c99 "-Isrc" tests/test_solver.c src/solver.c src/words.c -lm -o test_solver.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .\test_solver.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Build with GCC
+        shell: pwsh
         run: |
           windres -i src/resource.rc -o src/resource.o
-          gcc -O3 -Wall -std=c99 -Isrc -Iraylib/raylib-6.0_win32_mingw-w64/include `
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          gcc -O3 -Wall -std=c99 "-Isrc" "-Iraylib/raylib-6.0_win64_mingw-w64/include" `
               src/main.c src/ui_board.c src/ui_glass.c src/solver.c src/motion.c src/audio_synth.c src/words.c src/shim.c src/resource.o `
-              -Lraylib/raylib-6.0_win32_mingw-w64/lib -lraylib -lopengl32 -lgdi32 -lwinmm -lm -mwindows `
+              "-Lraylib/raylib-6.0_win64_mingw-w64/lib" -lraylib -lopengl32 -lgdi32 -lwinmm -lm -static -mwindows `
               -o wordle_prism.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path "wordle_prism.exe")) { throw "wordle_prism.exe missing" }
+
+      - name: Verify Standalone Binary Dependencies
+        shell: pwsh
+        run: |
+          $dllLines = objdump -p wordle_prism.exe | Select-String "DLL Name:" | ForEach-Object { $_.Line.Trim() }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not $dllLines) { throw "No DLL imports found in wordle_prism.exe" }
+          $dllLines | ForEach-Object { Write-Host $_ }
+          $unexpected = $dllLines | Where-Object { $_ -match "libgcc|winpthread|libstdc\+\+|raylib\.dll" }
+          if ($unexpected) {
+            throw "wordle_prism.exe links non-system runtime DLL(s): $($unexpected -join ', ')"
+          }
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -41,5 +72,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: wordle_prism.exe
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -9,6 +9,9 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/lunizura/discord-wordle-destroyer/actions/workflows/build.yml">
+    <img src="https://github.com/lunizura/discord-wordle-destroyer/actions/workflows/build.yml/badge.svg" alt="Build Status">
+  </a>
   <img src="https://img.shields.io/badge/Language-C99-00599C?style=flat-square&logo=c" alt="Language">
   <img src="https://img.shields.io/badge/GUI-Raylib%206.0-white?style=flat-square" alt="Raylib">
   <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows" alt="Platform">
@@ -49,17 +52,30 @@ Made this during the break after graduating high school while waiting for colleg
 
 ---
 
+## Download (Windows)
+
+Grab the latest pre-built `wordle_prism.exe` from [GitHub Releases](https://github.com/lunizura/discord-wordle-destroyer/releases) (or download the `wordle-prism-windows` artifact from [GitHub Actions](https://github.com/lunizura/discord-wordle-destroyer/actions/workflows/build.yml)).
+
+---
+
 ## Building from source (Windows)
 
 Needs GCC (MinGW):
 
 ```cmd
-git clone https://github.com/your-username/discord-wordle-destroyer.git
+git clone https://github.com/lunizura/discord-wordle-destroyer.git
 cd discord-wordle-destroyer
 build.bat
 ```
 
-Outputs `wordle_prism.exe` in ~2 seconds.
+Outputs `wordle_prism.exe` in ~2 seconds (`build.bat` automatically downloads the matching Raylib 6.0 MinGW SDK into `raylib/` if not present).
+
+### Running Solver Unit Tests
+
+```cmd
+gcc -O2 -Wall -Wextra -std=c99 -Isrc tests/test_solver.c src/solver.c src/words.c -lm -o test_solver.exe
+test_solver.exe
+```
 
 ---
 

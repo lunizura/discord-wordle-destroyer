@@ -1,4 +1,6 @@
 #include <stdio.h>
+
+#if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
 #include <stdarg.h>
 #include <math.h>
 #include <sys/stat.h>
@@ -30,3 +32,7 @@ void *imp_acrt __asm__("__imp____acrt_iob_func") = (void *)my_iob_func;
 int stat64i32(const char *path, struct _stat *buffer) {
     return _stat(path, buffer);
 }
+#else
+/* MinGW-w64 and modern toolchains already supply these CRT/math symbols. */
+typedef int wordle_shim_unused_tu;
+#endif
